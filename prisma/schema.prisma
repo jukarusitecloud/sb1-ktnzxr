@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  fullName      String
+  role          Role      @default(STAFF)
+  department    String?
+  position      String?
+  isActive      Boolean   @default(true)
+  permissions   String[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+  auditLogs     AuditLog[]
+}
+
+model Patient {
+  id              String    @id @default(uuid())
+  lastName        String
+  firstName       String
+  lastNameKana    String
+  firstNameKana   String
+  dateOfBirth     DateTime
+  gender          String
+  firstVisitDate  DateTime
+  address         String?
+  phone           String?
+  email           String?
+  emergencyContact String?
+  medicalHistory  String?
+  currentMedications String?
+  allergies       String?
+  status          PatientStatus @default(ACTIVE)
+  chartEntries    ChartEntry[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ChartEntry {
+  id              String    @id @default(uuid())
+  date            DateTime
+  content         String
+  therapyMethods  String[]
+  nextAppointment DateTime?
+  memoryBarValues Json?
+  modifiedAt      DateTime?
+  modifiedReason  String?
+  deletedAt       DateTime?
+  deleteReason    String?
+  isDeleted       Boolean   @default(false)
+  patient         Patient   @relation(fields: [patientId], references: [id])
+  patientId       String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model AuditLog {
+  id          String    @id @default(uuid())
+  type        LogType
+  action      String
+  details     String
+  ip          String?
+  userAgent   String?
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+  createdAt   DateTime  @default(now())
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum PatientStatus {
+  ACTIVE
+  COMPLETED
+}
+
+enum LogType {
+  AUTH
+  SYSTEM
+  DATA
+  SECURITY
+}
